@@ -35,14 +35,21 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
-        .view-toggle {
+        .controls {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            align-items: center;
+            gap: 15px;
             margin-bottom: 30px;
+            flex-wrap: wrap;
         }
 
-        .toggle-btn {
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-btn, .search-input {
             background: rgba(255,255,255,0.2);
             border: 2px solid rgba(255,255,255,0.3);
             color: white;
@@ -52,6 +59,15 @@
             font-size: 16px;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+        }
+
+        .search-input {
+            width: 300px;
+            cursor: text;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.6);
         }
 
         .toggle-btn:hover {
@@ -76,6 +92,7 @@
             text-align: center;
             text-decoration: none;
             transition: transform 0.3s ease;
+            position: relative;
         }
 
         .service-card-grid:hover {
@@ -93,12 +110,42 @@
             justify-content: center;
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
             overflow: hidden;
+            position: relative;
         }
 
         .icon-wrapper img {
             width: 70px;
             height: 70px;
             object-fit: contain;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .status-indicator.online {
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .status-indicator.offline {
+            background: #ef4444;
+        }
+
+        .status-indicator.checking {
+            background: #f59e0b;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .service-name {
@@ -128,6 +175,7 @@
             text-decoration: none;
             transition: all 0.3s ease;
             border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
         }
 
         .service-card-list:hover {
@@ -145,6 +193,7 @@
             justify-content: center;
             flex-shrink: 0;
             overflow: hidden;
+            position: relative;
         }
 
         .list-icon img {
@@ -176,6 +225,26 @@
             line-height: 1.4;
         }
 
+        .copy-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .copy-btn.copied {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
         .hidden {
             display: none;
         }
@@ -187,9 +256,29 @@
             font-size: 18px;
         }
 
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-input {
+                width: 100%;
+                max-width: 300px;
             }
             
             .services-grid {
@@ -206,6 +295,10 @@
                 width: 60px;
                 height: 60px;
             }
+
+            .copy-btn {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -215,9 +308,12 @@
             <h1>Мои Сервисы</h1>
         </header>
 
-        <div class="view-toggle">
-            <button class="toggle-btn" id="gridBtn">🔲 Сетка</button>
-            <button class="toggle-btn active" id="listBtn">📋 Список</button>
+        <div class="controls">
+            <div class="view-toggle">
+                <button class="toggle-btn" id="gridBtn">🔲 Сетка</button>
+                <button class="toggle-btn active" id="listBtn">📋 Список</button>
+            </div>
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Поиск сервисов...">
         </div>
 
         <div class="loading" id="loading">Загрузка сервисов...</div>
@@ -235,28 +331,124 @@
         const gridView = document.getElementById('gridView');
         const listView = document.getElementById('listView');
         const loading = document.getElementById('loading');
+        const searchInput = document.getElementById('searchInput');
 
+        let allServices = [];
         let currentView = 'list';
 
-        // Загрузка сервисов из JSON файла
+        // Получение домена из URL
+        function getDomain(url) {
+            try {
+                const urlObj = new URL(url);
+                return urlObj.hostname;
+            } catch {
+                return url;
+            }
+        }
+
+        // Получение favicon
+        function getFavicon(url) {
+            try {
+                const urlObj = new URL(url);
+                // Пробуем несколько вариантов получения favicon
+                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=128`;
+            } catch {
+                return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%234a90e2"/%3E%3Ctext x="50" y="50" font-size="40" text-anchor="middle" dy=".3em" fill="white"%3E?%3C/text%3E%3C/svg%3E';
+            }
+        }
+
+        // Получение названия из URL
+        function getNameFromUrl(url) {
+            try {
+                const urlObj = new URL(url);
+                let name = urlObj.hostname.split('.')[0];
+                return name.charAt(0).toUpperCase() + name.slice(1);
+            } catch {
+                return 'Сервис';
+            }
+        }
+
+        // Проверка доступности сервиса (упрощенная)
+        async function checkServiceStatus(url) {
+            // Заглушка для статуса - в реальности CORS не позволит проверить
+            // Можно интегрировать с внешним сервисом проверки или своим бэкендом
+            return 'online'; // или 'offline', 'checking'
+        }
+
+        // Загрузка сервисов из JSON
         async function loadServices() {
             try {
                 const response = await fetch('services.json');
                 const data = await response.json();
-                renderServices(data.services);
+                
+                // Обработка каждого сервиса
+                allServices = data.services.map(service => {
+                    // Если указан только URL, автозаполняем остальное
+                    if (typeof service === 'string') {
+                        return {
+                            url: service,
+                            name: getNameFromUrl(service),
+                            domain: getDomain(service),
+                            emoji: '🌐',
+                            description: '',
+                            icon: getFavicon(service)
+                        };
+                    }
+                    
+                    // Если объект, дополняем недостающие поля
+                    return {
+                        url: service.url,
+                        name: service.name || getNameFromUrl(service.url),
+                        domain: service.domain || getDomain(service.url),
+                        emoji: service.emoji || '🌐',
+                        description: service.description || '',
+                        icon: service.icon || getFavicon(service.url)
+                    };
+                });
+
+                renderServices(allServices);
                 loading.classList.add('hidden');
                 listView.classList.remove('hidden');
             } catch (error) {
                 console.error('Ошибка загрузки сервисов:', error);
-                loading.textContent = 'Ошибка загрузки сервисов. Проверьте файл services.json';
+                loading.innerHTML = `
+                    <div class="empty-state">
+                        <h2>Ошибка загрузки</h2>
+                        <p>Проверьте файл services.json</p>
+                    </div>
+                `;
             }
+        }
+
+        // Копирование URL
+        function copyToClipboard(url, button) {
+            navigator.clipboard.writeText(url).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✓ Скопировано';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
         }
 
         // Рендеринг сервисов
         function renderServices(services) {
-            // Очистка контейнеров
             gridView.innerHTML = '';
             listView.innerHTML = '';
+
+            if (services.length === 0) {
+                const emptyState = `
+                    <div class="empty-state">
+                        <h2>Ничего не найдено</h2>
+                        <p>Попробуйте изменить поисковый запрос</p>
+                    </div>
+                `;
+                listView.innerHTML = emptyState;
+                gridView.innerHTML = emptyState;
+                return;
+            }
 
             services.forEach(service => {
                 // Grid Card
@@ -266,30 +458,51 @@
                 gridCard.target = '_blank';
                 gridCard.innerHTML = `
                     <div class="icon-wrapper">
-                        <img src="${service.icon}" alt="${service.name}">
+                        <img src="${service.icon}" alt="${service.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%234a90e2%22/%3E%3Ctext x=%2250%22 y=%2250%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22%3E${service.name.charAt(0)}%3C/text%3E%3C/svg%3E'">
+                        <div class="status-indicator online"></div>
                     </div>
                     <div class="service-name">${service.name}</div>
                 `;
                 gridView.appendChild(gridCard);
 
                 // List Card
-                const listCard = document.createElement('a');
-                listCard.href = service.url;
+                const listCard = document.createElement('div');
                 listCard.className = 'service-card-list';
-                listCard.target = '_blank';
                 listCard.innerHTML = `
                     <div class="list-icon">
-                        <img src="${service.icon}" alt="${service.name}">
+                        <img src="${service.icon}" alt="${service.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%234a90e2%22/%3E%3Ctext x=%2250%22 y=%2250%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22%3E${service.name.charAt(0)}%3C/text%3E%3C/svg%3E'">
+                        <div class="status-indicator online"></div>
                     </div>
                     <div class="service-info">
                         <div class="service-title">${service.name}</div>
                         <div class="service-url">${service.emoji} ${service.domain}</div>
                         ${service.description ? `<div class="service-description">${service.description}</div>` : ''}
                     </div>
+                    <button class="copy-btn" onclick="event.preventDefault(); copyToClipboard('${service.url}', this)">📋 Копировать</button>
                 `;
+                
+                // Клик по карточке для перехода
+                listCard.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('copy-btn')) {
+                        window.open(service.url, '_blank');
+                    }
+                });
+                listCard.style.cursor = 'pointer';
+                
                 listView.appendChild(listCard);
             });
         }
+
+        // Поиск
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allServices.filter(service => 
+                service.name.toLowerCase().includes(query) ||
+                service.domain.toLowerCase().includes(query) ||
+                service.description.toLowerCase().includes(query)
+            );
+            renderServices(filtered);
+        });
 
         // Переключение видов
         gridBtn.addEventListener('click', () => {
@@ -310,6 +523,9 @@
 
         // Загрузка сервисов при загрузке страницы
         loadServices();
+
+        // Экспорт функции для использования в HTML
+        window.copyToClipboard = copyToClipboard;
     </script>
 </body>
 </html>
