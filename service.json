@@ -1,0 +1,36 @@
+{
+  "services": [
+    {
+      "name": "Grafana",
+      "url": "https://grafana.anonix.ru",
+      "domain": "grafana.anonix.ru",
+      "emoji": "📊",
+      "description": "Платформа для визуализации и мониторинга метрик",
+      "icon": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b35;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23f7931e;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 10 L90 90 L10 90 Z' fill='%233d3d3d'/%3E%3Cpath d='M50 30 C50 30 70 70 50 80 C30 70 50 30 50 30 Z' fill='url(%23grad1)'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23f7931e'/%3E%3C/svg%3E"
+    },
+    {
+      "name": "Remnawave",
+      "url": "https://rem.anonix.ru",
+      "domain": "rem.anonix.ru",
+      "emoji": "🔐",
+      "description": "Система аутентификации и управления пользователями",
+      "icon": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad2' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234a90e2;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%237cb5ec;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M20 70 L50 20 L80 70 Z' fill='url(%23grad2)'/%3E%3Cpath d='M35 70 L50 45 L65 70 Z' fill='%233d3d3d'/%3E%3C/svg%3E"
+    },
+    {
+      "name": "Anonix Docs",
+      "url": "https://wiki.anonix.ru",
+      "domain": "wiki.anonix.ru",
+      "emoji": "📚",
+      "description": "База знаний и документация проектов",
+      "icon": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 20 L70 40 L70 60 L50 80 L30 60 L30 40 Z' fill='%233d3d3d'/%3E%3Ccircle cx='50' cy='35' r='5' fill='white'/%3E%3Ccircle cx='35' cy='55' r='5' fill='white'/%3E%3Ccircle cx='65' cy='55' r='5' fill='white'/%3E%3Ccircle cx='50' cy='65' r='5' fill='white'/%3E%3Cpath d='M50 35 L35 55 M50 35 L65 55 M35 55 L50 65 M65 55 L50 65' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E"
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com",
+      "domain": "github.com",
+      "emoji": "💻",
+      "description": "Репозитории кода и совместная разработка",
+      "icon": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='45' r='25' fill='%23181717'/%3E%3Ccircle cx='42' cy='42' r='4' fill='white'/%3E%3Ccircle cx='58' cy='42' r='4' fill='white'/%3E%3Cpath d='M35 55 Q42 62 50 62 Q58 62 65 55' stroke='white' stroke-width='3' fill='none'/%3E%3Cpath d='M30 70 Q30 75 35 75 L45 75' stroke='%23181717' stroke-width='4' fill='none'/%3E%3Cpath d='M70 70 Q70 75 65 75 L55 75' stroke='%23181717' stroke-width='4' fill='none'/%3E%3C/svg%3E"
+    }
+  ]
+}

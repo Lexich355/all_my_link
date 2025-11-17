@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои Сервисы - Anonix</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .toggle-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .toggle-btn.active {
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        /* Grid View */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .service-card-grid {
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .service-card-grid:hover {
+            transform: translateY(-5px);
+        }
+
+        .icon-wrapper {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .icon-wrapper img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+        }
+
+        .service-name {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* List View */
+        .services-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .service-card-list {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .service-card-list:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateX(5px);
+        }
+
+        .list-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .list-icon img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .service-info {
+            flex: 1;
+        }
+
+        .service-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .service-url {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .service-description {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.8);
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 20px;
+            }
+
+            .icon-wrapper {
+                width: 100px;
+                height: 100px;
+            }
+
+            .icon-wrapper img {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Мои Сервисы</h1>
+        </header>
+
+        <div class="view-toggle">
+            <button class="toggle-btn" id="gridBtn">🔲 Сетка</button>
+            <button class="toggle-btn active" id="listBtn">📋 Список</button>
+        </div>
+
+        <div class="loading" id="loading">Загрузка сервисов...</div>
+
+        <!-- Grid View -->
+        <div class="services-grid hidden" id="gridView"></div>
+
+        <!-- List View -->
+        <div class="services-list hidden" id="listView"></div>
+    </div>
+
+    <script>
+        const gridBtn = document.getElementById('gridBtn');
+        const listBtn = document.getElementById('listBtn');
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        const loading = document.getElementById('loading');
+
+        let currentView = 'list';
+
+        // Загрузка сервисов из JSON файла
+        async function loadServices() {
+            try {
+                const response = await fetch('services.json');
+                const data = await response.json();
+                renderServices(data.services);
+                loading.classList.add('hidden');
+                listView.classList.remove('hidden');
+            } catch (error) {
+                console.error('Ошибка загрузки сервисов:', error);
+                loading.textContent = 'Ошибка загрузки сервисов. Проверьте файл services.json';
+            }
+        }
+
+        // Рендеринг сервисов
+        function renderServices(services) {
+            // Очистка контейнеров
+            gridView.innerHTML = '';
+            listView.innerHTML = '';
+
+            services.forEach(service => {
+                // Grid Card
+                const gridCard = document.createElement('a');
+                gridCard.href = service.url;
+                gridCard.className = 'service-card-grid';
+                gridCard.target = '_blank';
+                gridCard.innerHTML = `
+                    <div class="icon-wrapper">
+                        <img src="${service.icon}" alt="${service.name}">
+                    </div>
+                    <div class="service-name">${service.name}</div>
+                `;
+                gridView.appendChild(gridCard);
+
+                // List Card
+                const listCard = document.createElement('a');
+                listCard.href = service.url;
+                listCard.className = 'service-card-list';
+                listCard.target = '_blank';
+                listCard.innerHTML = `
+                    <div class="list-icon">
+                        <img src="${service.icon}" alt="${service.name}">
+                    </div>
+                    <div class="service-info">
+                        <div class="service-title">${service.name}</div>
+                        <div class="service-url">${service.emoji} ${service.domain}</div>
+                        ${service.description ? `<div class="service-description">${service.description}</div>` : ''}
+                    </div>
+                `;
+                listView.appendChild(listCard);
+            });
+        }
+
+        // Переключение видов
+        gridBtn.addEventListener('click', () => {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            gridBtn.classList.add('active');
+            listBtn.classList.remove('active');
+            currentView = 'grid';
+        });
+
+        listBtn.addEventListener('click', () => {
+            listView.classList.remove('hidden');
+            gridView.classList.add('hidden');
+            listBtn.classList.add('active');
+            gridBtn.classList.remove('active');
+            currentView = 'list';
+        });
+
+        // Загрузка сервисов при загрузке страницы
+        loadServices();
+    </script>
+</body>
+</html>
