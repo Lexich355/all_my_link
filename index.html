@@ -346,12 +346,15 @@
             }
         }
 
-        // Получение favicon
+        // Получение favicon - используем несколько качественных источников
         function getFavicon(url) {
             try {
                 const urlObj = new URL(url);
-                // Пробуем несколько вариантов получения favicon
-                return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=128`;
+                const domain = urlObj.hostname;
+                
+                // Используем DuckDuckGo API для качественных иконок
+                // Fallback на прямой путь к favicon, потом на placeholder
+                return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
             } catch {
                 return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%234a90e2"/%3E%3Ctext x="50" y="50" font-size="40" text-anchor="middle" dy=".3em" fill="white"%3E?%3C/text%3E%3C/svg%3E';
             }
@@ -373,6 +376,47 @@
             // Заглушка для статуса - в реальности CORS не позволит проверить
             // Можно интегрировать с внешним сервисом проверки или своим бэкендом
             return 'online'; // или 'offline', 'checking'
+        }
+
+        // Обработка ошибки загрузки иконки с множественными fallback
+        function handleIconError(img, url, name) {
+            if (!img.dataset.fallbackAttempt) {
+                img.dataset.fallbackAttempt = '1';
+                try {
+                    const urlObj = new URL(url);
+                    // Пробуем прямой путь к favicon
+                    img.src = `${urlObj.origin}/favicon.ico`;
+                } catch {
+                    createPlaceholder(img, name);
+                }
+            } else if (img.dataset.fallbackAttempt === '1') {
+                img.dataset.fallbackAttempt = '2';
+                try {
+                    const urlObj = new URL(url);
+                    // Пробуем Clearbit Logo API (высокое качество)
+                    img.src = `https://logo.clearbit.com/${urlObj.hostname}`;
+                } catch {
+                    createPlaceholder(img, name);
+                }
+            } else if (img.dataset.fallbackAttempt === '2') {
+                img.dataset.fallbackAttempt = '3';
+                try {
+                    const urlObj = new URL(url);
+                    // Пробуем Favicon Kit
+                    img.src = `https://api.faviconkit.com/${urlObj.hostname}/144`;
+                } catch {
+                    createPlaceholder(img, name);
+                }
+            } else {
+                createPlaceholder(img, name);
+            }
+        }
+
+        // Создание placeholder с первой буквой
+        function createPlaceholder(img, name) {
+            const colors = ['#4a90e2', '#e24a90', '#90e24a', '#e2904a', '#4ae290', '#904ae2'];
+            const color = colors[name.charCodeAt(0) % colors.length];
+            img.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='${encodeURIComponent(color)}'/%3E%3Ctext x='50' y='50' font-size='40' font-weight='bold' text-anchor='middle' dy='.3em' fill='white'%3E${name.charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E`;
         }
 
         // Загрузка сервисов из JSON
@@ -458,7 +502,9 @@
                 gridCard.target = '_blank';
                 gridCard.innerHTML = `
                     <div class="icon-wrapper">
-                        <img src="${service.icon}" alt="${service.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%234a90e2%22/%3E%3Ctext x=%2250%22 y=%2250%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22%3E${service.name.charAt(0)}%3C/text%3E%3C/svg%3E'">
+                        <img src="${service.icon}" alt="${service.name}" 
+                             onerror="handleIconError(this, '${service.url}', '${service.name}')"
+                             loading="lazy">
                         <div class="status-indicator online"></div>
                     </div>
                     <div class="service-name">${service.name}</div>
@@ -470,7 +516,9 @@
                 listCard.className = 'service-card-list';
                 listCard.innerHTML = `
                     <div class="list-icon">
-                        <img src="${service.icon}" alt="${service.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%234a90e2%22/%3E%3Ctext x=%2250%22 y=%2250%22 font-size=%2240%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22%3E${service.name.charAt(0)}%3C/text%3E%3C/svg%3E'">
+                        <img src="${service.icon}" alt="${service.name}" 
+                             onerror="handleIconError(this, '${service.url}', '${service.name}')"
+                             loading="lazy">
                         <div class="status-indicator online"></div>
                     </div>
                     <div class="service-info">
@@ -524,8 +572,9 @@
         // Загрузка сервисов при загрузке страницы
         loadServices();
 
-        // Экспорт функции для использования в HTML
+        // Экспорт функций для использования в HTML
         window.copyToClipboard = copyToClipboard;
+        window.handleIconError = handleIconError;
     </script>
 </body>
 </html>
