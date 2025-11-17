@@ -3,7 +3,9 @@
     "https://grafana.anonix.ru",
     "https://rem.anonix.ru",
     "https://wiki.anonix.ru",
+    
     "https://github.com",
+    "https://cloudflare.com"
     
     {
       "url": "https://grafana.anonix.ru",
@@ -12,4 +14,5 @@
       "description": "Если нужно переопределить данные - используйте такой формат"
     }
   ]
+
 }
