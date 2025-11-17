@@ -5,7 +5,6 @@
     "https://wiki.anonix.ru",
     "https://github.com",
     "https://cloudflare.com",
-    
     {
       "url": "https://grafana.anonix.ru",
       "name": "Grafana Custom",
@@ -13,6 +12,4 @@
       "description": "Если нужно переопределить данные - используйте такой формат"
     }
   ]
-
 }
-
