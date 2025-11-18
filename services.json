@@ -1,7 +1,5 @@
 {
   "services": [
-    "https://rem.anonix.ru",
-    "https://wiki.anonix.ru",
     "https://github.com",
     "https://cloudflare.com",
     {
@@ -32,4 +30,5 @@
     }
   ]
 }
+
 
