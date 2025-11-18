@@ -2,14 +2,13 @@
   "services": [
     "https://rem.anonix.ru",
     "https://wiki.anonix.ru",
-    
     "https://github.com",
     "https://cloudflare.com",
     {
       "url": "https://grafana.anonix.ru",
       "name": "Grafana",
       "emoji": "📈",
-      "description": "Платформа для визуализации и мониторинга метрик"
+      "description": "Платформа для визуализации и мониторинга метрик",
       "icon": "https://grafana.anonix.ru/public/img/grafana_icon.svg"
     },
     {
@@ -27,8 +26,6 @@
       "emoji": "🛠️",
       "description": "Панельь управления прокси",
       "icon": "https://rem.anonix.ru/Id5blqsxp40d/auth/assets/images/favicon.png"
-    },
+    }
   ]
 }
-
-
