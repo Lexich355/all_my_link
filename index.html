@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anonix Сервисы</title>
+    <title>Мои Сервисы - Anonix</title>
     <style>
         * {
             margin: 0;
@@ -40,8 +40,40 @@
             justify-content: center;
             align-items: center;
             gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .categories {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
             margin-bottom: 30px;
             flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.8);
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .category-btn:hover {
+            background: rgba(255,255,255,0.25);
+            color: white;
+        }
+
+        .category-btn.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+            font-weight: 600;
         }
 
         .view-toggle {
@@ -88,6 +120,17 @@
             padding: 20px;
         }
 
+        .category-header {
+            grid-column: 1 / -1;
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+            border-left: 4px solid rgba(255,255,255,0.5);
+        }
+
         .service-card-grid {
             text-align: center;
             text-decoration: none;
@@ -119,34 +162,7 @@
             object-fit: contain;
         }
 
-        .status-indicator {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
 
-        .status-indicator.online {
-            background: #10b981;
-            box-shadow: 0 0 8px #10b981;
-        }
-
-        .status-indicator.offline {
-            background: #ef4444;
-        }
-
-        .status-indicator.checking {
-            background: #f59e0b;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
 
         .service-name {
             color: white;
@@ -162,6 +178,20 @@
             gap: 15px;
             max-width: 800px;
             margin: 0 auto;
+        }
+
+        .category-header-list {
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-left: 15px;
+            border-left: 4px solid rgba(255,255,255,0.5);
+        }
+
+        .category-header-list:first-child {
+            margin-top: 0;
         }
 
         .service-card-list {
@@ -305,7 +335,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Anonix Сервисы</h1>
+            <h1>Сервисы Anonix</h1>
         </header>
 
         <div class="controls">
@@ -315,6 +345,8 @@
             </div>
             <input type="text" class="search-input" id="searchInput" placeholder="🔍 Поиск сервисов...">
         </div>
+
+        <div class="categories" id="categories"></div>
 
         <div class="loading" id="loading">Загрузка сервисов...</div>
 
@@ -332,9 +364,12 @@
         const listView = document.getElementById('listView');
         const loading = document.getElementById('loading');
         const searchInput = document.getElementById('searchInput');
+        const categoriesContainer = document.getElementById('categories');
 
         let allServices = [];
         let currentView = 'list';
+        let currentCategory = 'all';
+        let categories = [];
 
         // Получение домена из URL
         function getDomain(url) {
@@ -346,14 +381,13 @@
             }
         }
 
-        // Получение favicon - используем несколько качественных источников
+        // Получение favicon
         function getFavicon(url) {
             try {
                 const urlObj = new URL(url);
                 const domain = urlObj.hostname;
                 
                 // Используем DuckDuckGo API для качественных иконок
-                // Fallback на прямой путь к favicon, потом на placeholder
                 return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
             } catch {
                 return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%234a90e2"/%3E%3Ctext x="50" y="50" font-size="40" text-anchor="middle" dy=".3em" fill="white"%3E?%3C/text%3E%3C/svg%3E';
@@ -369,13 +403,6 @@
             } catch {
                 return 'Сервис';
             }
-        }
-
-        // Проверка доступности сервиса (упрощенная)
-        async function checkServiceStatus(url) {
-            // Заглушка для статуса - в реальности CORS не позволит проверить
-            // Можно интегрировать с внешним сервисом проверки или своим бэкендом
-            return 'online'; // или 'offline', 'checking'
         }
 
         // Обработка ошибки загрузки иконки с множественными fallback
@@ -435,7 +462,8 @@
                             domain: getDomain(service),
                             emoji: '🌐',
                             description: '',
-                            icon: getFavicon(service)
+                            icon: getFavicon(service),
+                            category: 'Без категории'
                         };
                     }
                     
@@ -446,10 +474,14 @@
                         domain: service.domain || getDomain(service.url),
                         emoji: service.emoji || '🌐',
                         description: service.description || '',
-                        icon: service.icon || getFavicon(service.url)
+                        icon: service.icon || getFavicon(service.url),
+                        category: service.category || 'Без категории'
                     };
                 });
 
+                // Собираем уникальные категории
+                categories = ['Все', ...new Set(allServices.map(s => s.category))];
+                renderCategories();
                 renderServices(allServices);
                 loading.classList.add('hidden');
                 listView.classList.remove('hidden');
@@ -477,6 +509,50 @@
             });
         }
 
+        // Рендеринг категорий
+        function renderCategories() {
+            categoriesContainer.innerHTML = '';
+            
+            categories.forEach(category => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                if (category === 'Все') {
+                    btn.classList.add('active');
+                }
+                btn.textContent = category;
+                btn.addEventListener('click', () => {
+                    currentCategory = category;
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    filterAndRender();
+                });
+                categoriesContainer.appendChild(btn);
+            });
+        }
+
+        // Фильтрация и рендеринг
+        function filterAndRender() {
+            const query = searchInput.value.toLowerCase();
+            let filtered = allServices;
+
+            // Фильтр по категории
+            if (currentCategory !== 'Все') {
+                filtered = filtered.filter(s => s.category === currentCategory);
+            }
+
+            // Фильтр по поиску
+            if (query) {
+                filtered = filtered.filter(service => 
+                    service.name.toLowerCase().includes(query) ||
+                    service.domain.toLowerCase().includes(query) ||
+                    service.description.toLowerCase().includes(query) ||
+                    service.category.toLowerCase().includes(query)
+                );
+            }
+
+            renderServices(filtered);
+        }
+
         // Рендеринг сервисов
         function renderServices(services) {
             gridView.innerHTML = '';
@@ -486,7 +562,7 @@
                 const emptyState = `
                     <div class="empty-state">
                         <h2>Ничего не найдено</h2>
-                        <p>Попробуйте изменить поисковый запрос</p>
+                        <p>Попробуйте изменить поисковый запрос или категорию</p>
                     </div>
                 `;
                 listView.innerHTML = emptyState;
@@ -494,62 +570,83 @@
                 return;
             }
 
+            // Группируем по категориям для отображения
+            const grouped = {};
             services.forEach(service => {
-                // Grid Card
-                const gridCard = document.createElement('a');
-                gridCard.href = service.url;
-                gridCard.className = 'service-card-grid';
-                gridCard.target = '_blank';
-                gridCard.innerHTML = `
-                    <div class="icon-wrapper">
-                        <img src="${service.icon}" alt="${service.name}" 
-                             onerror="handleIconError(this, '${service.url}', '${service.name}')"
-                             loading="lazy">
-                        <div class="status-indicator online"></div>
-                    </div>
-                    <div class="service-name">${service.name}</div>
-                `;
-                gridView.appendChild(gridCard);
+                if (!grouped[service.category]) {
+                    grouped[service.category] = [];
+                }
+                grouped[service.category].push(service);
+            });
 
-                // List Card
-                const listCard = document.createElement('div');
-                listCard.className = 'service-card-list';
-                listCard.innerHTML = `
-                    <div class="list-icon">
-                        <img src="${service.icon}" alt="${service.name}" 
-                             onerror="handleIconError(this, '${service.url}', '${service.name}')"
-                             loading="lazy">
-                        <div class="status-indicator online"></div>
-                    </div>
-                    <div class="service-info">
-                        <div class="service-title">${service.name}</div>
-                        <div class="service-url">${service.emoji} ${service.domain}</div>
-                        ${service.description ? `<div class="service-description">${service.description}</div>` : ''}
-                    </div>
-                    <button class="copy-btn" onclick="event.preventDefault(); copyToClipboard('${service.url}', this)">📋 Копировать</button>
-                `;
-                
-                // Клик по карточке для перехода
-                listCard.addEventListener('click', (e) => {
-                    if (!e.target.classList.contains('copy-btn')) {
-                        window.open(service.url, '_blank');
-                    }
+            // Рендерим для Grid View
+            Object.entries(grouped).forEach(([category, categoryServices]) => {
+                // Добавляем заголовок категории
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'category-header';
+                categoryHeader.textContent = category;
+                gridView.appendChild(categoryHeader);
+
+                // Добавляем сервисы
+                categoryServices.forEach(service => {
+                    const gridCard = document.createElement('a');
+                    gridCard.href = service.url;
+                    gridCard.className = 'service-card-grid';
+                    gridCard.target = '_blank';
+                    gridCard.innerHTML = `
+                        <div class="icon-wrapper">
+                            <img src="${service.icon}" alt="${service.name}" 
+                                 onerror="handleIconError(this, '${service.url}', '${service.name}')"
+                                 loading="lazy">
+                        </div>
+                        <div class="service-name">${service.name}</div>
+                    `;
+                    gridView.appendChild(gridCard);
                 });
-                listCard.style.cursor = 'pointer';
-                
-                listView.appendChild(listCard);
+            });
+
+            // Рендерим для List View
+            Object.entries(grouped).forEach(([category, categoryServices]) => {
+                // Добавляем заголовок категории
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'category-header-list';
+                categoryHeader.textContent = category;
+                listView.appendChild(categoryHeader);
+
+                // Добавляем сервисы
+                categoryServices.forEach(service => {
+                    const listCard = document.createElement('div');
+                    listCard.className = 'service-card-list';
+                    listCard.innerHTML = `
+                        <div class="list-icon">
+                            <img src="${service.icon}" alt="${service.name}" 
+                                 onerror="handleIconError(this, '${service.url}', '${service.name}')"
+                                 loading="lazy">
+                        </div>
+                        <div class="service-info">
+                            <div class="service-title">${service.name}</div>
+                            <div class="service-url">${service.emoji} ${service.domain}</div>
+                            ${service.description ? `<div class="service-description">${service.description}</div>` : ''}
+                        </div>
+                        <button class="copy-btn" onclick="event.preventDefault(); copyToClipboard('${service.url}', this)">📋 Копировать</button>
+                    `;
+                    
+                    // Клик по карточке для перехода
+                    listCard.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('copy-btn')) {
+                            window.open(service.url, '_blank');
+                        }
+                    });
+                    listCard.style.cursor = 'pointer';
+                    
+                    listView.appendChild(listCard);
+                });
             });
         }
 
         // Поиск
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = allServices.filter(service => 
-                service.name.toLowerCase().includes(query) ||
-                service.domain.toLowerCase().includes(query) ||
-                service.description.toLowerCase().includes(query)
-            );
-            renderServices(filtered);
+        searchInput.addEventListener('input', () => {
+            filterAndRender();
         });
 
         // Переключение видов
@@ -577,6 +674,4 @@
         window.handleIconError = handleIconError;
     </script>
 </body>
-
 </html>
-
