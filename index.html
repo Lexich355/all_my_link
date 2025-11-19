@@ -136,17 +136,6 @@
             padding: 20px;
         }
 
-        .category-header {
-            grid-column: 1 / -1;
-            font-size: 20px;
-            font-weight: 600;
-            color: white;
-            margin-top: 10px;
-            margin-bottom: 5px;
-            padding-left: 10px;
-            border-left: 4px solid rgba(255,255,255,0.5);
-        }
-
         .service-card-grid {
             text-align: center;
             text-decoration: none;
@@ -194,20 +183,6 @@
             gap: 15px;
             max-width: 800px;
             margin: 0 auto;
-        }
-
-        .category-header-list {
-            font-size: 20px;
-            font-weight: 600;
-            color: white;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            padding-left: 15px;
-            border-left: 4px solid rgba(255,255,255,0.5);
-        }
-
-        .category-header-list:first-child {
-            margin-top: 0;
         }
 
         .service-card-list {
@@ -362,7 +337,7 @@
             <input type="text" class="search-input" id="searchInput" placeholder="🔍 Поиск сервисов...">
         </div>
 
-        <div class="categories" id="categories"></div>
+        <div class="tags-container" id="tagsContainer"></div>
 
         <div class="loading" id="loading">Загрузка сервисов...</div>
 
@@ -380,12 +355,12 @@
         const listView = document.getElementById('listView');
         const loading = document.getElementById('loading');
         const searchInput = document.getElementById('searchInput');
-        const categoriesContainer = document.getElementById('categories');
+        const tagsContainer = document.getElementById('tagsContainer');
 
         let allServices = [];
         let currentView = 'list';
-        let currentCategory = 'all';
-        let categories = [];
+        let activeTags = new Set();
+        let allTags = [];
 
         // Получение домена из URL
         function getDomain(url) {
@@ -470,6 +445,8 @@
                 
                 // Обработка каждого сервиса
                 allServices = data.services.map(service => {
+                    let tags = [];
+                    
                     // Если указан только URL, автозаполняем остальное
                     if (typeof service === 'string') {
                         return {
@@ -479,8 +456,16 @@
                             emoji: '🌐',
                             description: '',
                             icon: getFavicon(service),
-                            category: 'Без категории'
+                            tags: []
                         };
+                    }
+                    
+                    // Обработка тегов - может быть строка или массив
+                    if (service.tags) {
+                        tags = Array.isArray(service.tags) ? service.tags : [service.tags];
+                    } else if (service.category) {
+                        // Поддержка старого формата с category
+                        tags = [service.category];
                     }
                     
                     // Если объект, дополняем недостающие поля
@@ -491,13 +476,18 @@
                         emoji: service.emoji || '🌐',
                         description: service.description || '',
                         icon: service.icon || getFavicon(service.url),
-                        category: service.category || 'Без категории'
+                        tags: tags
                     };
                 });
 
-                // Собираем уникальные категории
-                categories = ['Все', ...new Set(allServices.map(s => s.category))];
-                renderCategories();
+                // Собираем уникальные теги
+                const tagsSet = new Set();
+                allServices.forEach(service => {
+                    service.tags.forEach(tag => tagsSet.add(tag));
+                });
+                allTags = ['Все', ...Array.from(tagsSet).sort()];
+                
+                renderTags();
                 renderServices(allServices);
                 loading.classList.add('hidden');
                 listView.classList.remove('hidden');
@@ -525,24 +515,33 @@
             });
         }
 
-        // Рендеринг категорий
-        function renderCategories() {
-            categoriesContainer.innerHTML = '';
+        // Рендеринг тегов
+        function renderTags() {
+            tagsContainer.innerHTML = '';
             
-            categories.forEach(category => {
+            allTags.forEach(tag => {
                 const btn = document.createElement('button');
-                btn.className = 'category-btn';
-                if (category === 'Все') {
+                btn.className = 'tag-btn';
+                if (tag === 'Все' && activeTags.size === 0) {
+                    btn.classList.add('active');
+                } else if (activeTags.has(tag)) {
                     btn.classList.add('active');
                 }
-                btn.textContent = category;
+                btn.textContent = tag;
                 btn.addEventListener('click', () => {
-                    currentCategory = category;
-                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
+                    if (tag === 'Все') {
+                        activeTags.clear();
+                    } else {
+                        if (activeTags.has(tag)) {
+                            activeTags.delete(tag);
+                        } else {
+                            activeTags.add(tag);
+                        }
+                    }
+                    renderTags();
                     filterAndRender();
                 });
-                categoriesContainer.appendChild(btn);
+                tagsContainer.appendChild(btn);
             });
         }
 
@@ -551,9 +550,11 @@
             const query = searchInput.value.toLowerCase();
             let filtered = allServices;
 
-            // Фильтр по категории
-            if (currentCategory !== 'Все') {
-                filtered = filtered.filter(s => s.category === currentCategory);
+            // Фильтр по тегам (И логика - сервис должен иметь ВСЕ выбранные теги)
+            if (activeTags.size > 0) {
+                filtered = filtered.filter(service => {
+                    return Array.from(activeTags).every(tag => service.tags.includes(tag));
+                });
             }
 
             // Фильтр по поиску
@@ -562,7 +563,7 @@
                     service.name.toLowerCase().includes(query) ||
                     service.domain.toLowerCase().includes(query) ||
                     service.description.toLowerCase().includes(query) ||
-                    service.category.toLowerCase().includes(query)
+                    service.tags.some(tag => tag.toLowerCase().includes(query))
                 );
             }
 
@@ -578,7 +579,7 @@
                 const emptyState = `
                     <div class="empty-state">
                         <h2>Ничего не найдено</h2>
-                        <p>Попробуйте изменить поисковый запрос или категорию</p>
+                        <p>Попробуйте изменить поисковый запрос или теги</p>
                     </div>
                 `;
                 listView.innerHTML = emptyState;
@@ -586,77 +587,54 @@
                 return;
             }
 
-            // Группируем по категориям для отображения
-            const grouped = {};
             services.forEach(service => {
-                if (!grouped[service.category]) {
-                    grouped[service.category] = [];
-                }
-                grouped[service.category].push(service);
-            });
+                // Grid Card
+                const gridCard = document.createElement('a');
+                gridCard.href = service.url;
+                gridCard.className = 'service-card-grid';
+                gridCard.target = '_blank';
+                gridCard.innerHTML = `
+                    <div class="icon-wrapper">
+                        <img src="${service.icon}" alt="${service.name}" 
+                             onerror="handleIconError(this, '${service.url}', '${service.name}')"
+                             loading="lazy">
+                    </div>
+                    <div class="service-name">${service.name}</div>
+                `;
+                gridView.appendChild(gridCard);
 
-            // Рендерим для Grid View
-            Object.entries(grouped).forEach(([category, categoryServices]) => {
-                // Добавляем заголовок категории
-                const categoryHeader = document.createElement('div');
-                categoryHeader.className = 'category-header';
-                categoryHeader.textContent = category;
-                gridView.appendChild(categoryHeader);
-
-                // Добавляем сервисы
-                categoryServices.forEach(service => {
-                    const gridCard = document.createElement('a');
-                    gridCard.href = service.url;
-                    gridCard.className = 'service-card-grid';
-                    gridCard.target = '_blank';
-                    gridCard.innerHTML = `
-                        <div class="icon-wrapper">
-                            <img src="${service.icon}" alt="${service.name}" 
-                                 onerror="handleIconError(this, '${service.url}', '${service.name}')"
-                                 loading="lazy">
-                        </div>
-                        <div class="service-name">${service.name}</div>
-                    `;
-                    gridView.appendChild(gridCard);
+                // List Card
+                const listCard = document.createElement('div');
+                listCard.className = 'service-card-list';
+                
+                const tagsHtml = service.tags.length > 0 
+                    ? `<div class="service-tags">${service.tags.map(tag => `<span class="service-tag">${tag}</span>`).join('')}</div>`
+                    : '';
+                
+                listCard.innerHTML = `
+                    <div class="list-icon">
+                        <img src="${service.icon}" alt="${service.name}" 
+                             onerror="handleIconError(this, '${service.url}', '${service.name}')"
+                             loading="lazy">
+                    </div>
+                    <div class="service-info">
+                        <div class="service-title">${service.name}</div>
+                        <div class="service-url">${service.emoji} ${service.domain}</div>
+                        ${service.description ? `<div class="service-description">${service.description}</div>` : ''}
+                        ${tagsHtml}
+                    </div>
+                    <button class="copy-btn" onclick="event.preventDefault(); copyToClipboard('${service.url}', this)">📋 Копировать</button>
+                `;
+                
+                // Клик по карточке для перехода
+                listCard.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('copy-btn')) {
+                        window.open(service.url, '_blank');
+                    }
                 });
-            });
-
-            // Рендерим для List View
-            Object.entries(grouped).forEach(([category, categoryServices]) => {
-                // Добавляем заголовок категории
-                const categoryHeader = document.createElement('div');
-                categoryHeader.className = 'category-header-list';
-                categoryHeader.textContent = category;
-                listView.appendChild(categoryHeader);
-
-                // Добавляем сервисы
-                categoryServices.forEach(service => {
-                    const listCard = document.createElement('div');
-                    listCard.className = 'service-card-list';
-                    listCard.innerHTML = `
-                        <div class="list-icon">
-                            <img src="${service.icon}" alt="${service.name}" 
-                                 onerror="handleIconError(this, '${service.url}', '${service.name}')"
-                                 loading="lazy">
-                        </div>
-                        <div class="service-info">
-                            <div class="service-title">${service.name}</div>
-                            <div class="service-url">${service.emoji} ${service.domain}</div>
-                            ${service.description ? `<div class="service-description">${service.description}</div>` : ''}
-                        </div>
-                        <button class="copy-btn" onclick="event.preventDefault(); copyToClipboard('${service.url}', this)">📋 Копировать</button>
-                    `;
-                    
-                    // Клик по карточке для перехода
-                    listCard.addEventListener('click', (e) => {
-                        if (!e.target.classList.contains('copy-btn')) {
-                            window.open(service.url, '_blank');
-                        }
-                    });
-                    listCard.style.cursor = 'pointer';
-                    
-                    listView.appendChild(listCard);
-                });
+                listCard.style.cursor = 'pointer';
+                
+                listView.appendChild(listCard);
             });
         }
 
