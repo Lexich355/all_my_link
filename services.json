@@ -1,12 +1,12 @@
 {
   "services": [
     {
-      "url": "excalidraw.com",
+      "url": "https://excalidraw.com",
       "emoji": "🌐",
       "description": "Рисовалка + совместная работа без авторизаци"
     },
     {
-      "url": "github.com",
+      "url": "https://github.com",
       "tags": [
         "git"
       ]
