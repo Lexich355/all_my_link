@@ -44,7 +44,7 @@
             flex-wrap: wrap;
         }
 
-        .categories {
+        .tags-container {
             display: flex;
             justify-content: center;
             gap: 10px;
@@ -52,7 +52,7 @@
             flex-wrap: wrap;
         }
 
-        .category-btn {
+        .tag-btn {
             background: rgba(255,255,255,0.15);
             border: 2px solid rgba(255,255,255,0.25);
             color: rgba(255,255,255,0.8);
@@ -64,16 +64,32 @@
             backdrop-filter: blur(10px);
         }
 
-        .category-btn:hover {
+        .tag-btn:hover {
             background: rgba(255,255,255,0.25);
             color: white;
         }
 
-        .category-btn.active {
+        .tag-btn.active {
             background: rgba(255,255,255,0.3);
             border-color: rgba(255,255,255,0.5);
             color: white;
             font-weight: 600;
+        }
+
+        .service-tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .service-tag {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
         }
 
         .view-toggle {
@@ -335,7 +351,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Сервисы Anonix</h1>
+            <h1>Мои Сервисы</h1>
         </header>
 
         <div class="controls">
