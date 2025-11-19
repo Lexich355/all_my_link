@@ -1,6 +1,9 @@
 {
   "services": [
-    "https://github.com",
+    {
+      "url": "https://github.com",
+      "tags": ["Разработка", "Git"]
+    },
     "https://cloudflare.com",
     {
       "url": "https://grafana.anonix.ru",
@@ -8,7 +11,7 @@
       "emoji": "📈",
       "description": "Платформа для визуализации и мониторинга метрик",
       "icon": "https://grafana.anonix.ru/public/img/grafana_icon.svg",
-      "category": "Anonix"
+      "tags": ["Anonix", "Мониторинг", "Аналитика"]
     },
     {
       "name": "Anonix Docs",
@@ -17,18 +20,19 @@
       "emoji": "📚",
       "description": "База знаний и документация проектов",
       "icon": "https://wiki.anonix.ru/favicon.svg",
-      "category": "Anonix"
+      "tags": ["Anonix", "Документация"]
     },
     {
       "name": "Remnawave",
       "url": "https://rem.anonix.ru/Id5blqsxp40d",
       "domain": "rem.anonix.ru",
       "emoji": "🛠️",
-      "description": "Панельь управления прокси",
+      "description": "Панель управления прокси",
       "icon": "https://rem.anonix.ru/Id5blqsxp40d/auth/assets/images/favicon.png",
-      "category": "Anonix"
+      "tags": ["Anonix", "Панель"]
     }
   ]
 }
+
 
 
