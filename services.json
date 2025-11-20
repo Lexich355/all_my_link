@@ -1,18 +1,29 @@
 {
   "services": [
     {
+      "url": "https://json-link.anonix.ru/",
+      "name": "Редактор сервисов",
+      "emoji": "🛠️",
+      "description": "Редактор json для данного сервиса",
+      "tags": [
+        "Anonix"
+      ]
+    },
+    {
       "url": "https://excalidraw.com",
       "emoji": "🌐",
       "description": "Рисовалка + совместная работа без авторизаци"
     },
     {
       "url": "https://github.com",
+      "emoji": "💻",
       "tags": [
         "git"
       ]
     },
     {
       "url": "https://cloudflare.com",
+      "emoji": "🛠️",
       "description": "DNS"
     },
     {
